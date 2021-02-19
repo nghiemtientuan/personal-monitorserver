@@ -45,3 +45,24 @@ groups:
       instance: "{{ $labels.instance }}"
       description: "Docker host storage usage is {{ humanize $value}}%. Reported by instance {{ $labels.instance }} of job {{ $labels.job }}."
 
+- name: nginx
+  rules:
+  - alert: nginx_has_too_many_requests_in_1m
+    expr: sum(rate(nginx_http_requests_total[1m])) > 1000
+    for: 1m
+    labels:
+      severity: warning
+    annotations:
+      summary: Nginx has too many requests
+      instance: "{{ $labels.instance }}"
+      description: Too many HTTP requests (> 1000) in 1m
+
+  - alert: nginx_high_http_5xx_error_rate
+    expr: sum(rate(nginx_http_requests_total{status=~"^5.."}[1m])) / sum(rate(nginx_http_requests_total[1m])) * 100 > 5
+    for: 1m
+    labels:
+      severity: critical
+    annotations:
+      summary: Nginx high HTTP 5xx error rate (instance {{ $labels.instance }})
+      instance: "{{ $labels.instance }}"
+      description: Too many HTTP requests with status 5xx (> 5%) VALUE = {{ $value }}
